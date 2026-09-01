@@ -1,1 +1,115 @@
 
+project:
+  id: SS-AI-001
+  name: SafeStop AI-FMEA Pipeline
+  equipment: Fixed industrial robot cell
+  purpose: Documentation and simulation exercise only
+
+safety_function:
+  id: SF-01
+  description: >
+    When either emergency-stop input channel changes to the demanded
+    state, de-energize safety outputs Q1 and Q2, open contactors K1
+    and K2, remove power enabling hazardous motion, and prevent reset
+    until the demand is released and contactor feedback is healthy.
+
+  initiating_event: A person presses ESTOP-01
+
+  safe_state:
+    - K1 and K2 are de-energized and open
+    - Power enabling hazardous robot motion is removed
+    - Hazardous robot motion has ceased
+    - Restart is inhibited
+
+  reset_condition: >
+    ESTOP-01 is released, both channels are healthy and synchronous,
+    K1 and K2 feedback proves open, and a deliberate manual reset
+    edge is accepted.
+
+elements:
+  - id: ESTOP-01
+    name: Emergency-stop pushbutton
+    function: Provide two independent emergency-stop demand channels
+    interfaces:
+      - CH-A
+      - CH-B
+    analysis_boundary: Two positively-opening normally closed contacts
+
+  - id: CTRL-01
+    name: Safety controller
+    function: Monitor inputs, control outputs, manage reset and diagnostics
+    interfaces:
+      - CH-A
+      - CH-B
+      - RESET
+      - EDM
+      - Q1
+      - Q2
+    analysis_boundary: Internal hardware and firmware are treated as a black box
+
+  - id: OUT-Q1
+    name: Safety output channel 1
+    function: Control the K1 coil
+    interfaces:
+      - Q1
+      - K1
+    analysis_boundary: Output and field wiring are considered
+
+  - id: OUT-Q2
+    name: Safety output channel 2
+    function: Control the K2 coil
+    interfaces:
+      - Q2
+      - K2
+    analysis_boundary: Output and field wiring are considered
+
+  - id: K1
+    name: Power contactor 1
+    function: Interrupt drive power path 1
+    interfaces:
+      - Coil
+      - Main contacts
+      - Auxiliary feedback
+    analysis_boundary: Series power architecture is assumed
+
+  - id: K2
+    name: Power contactor 2
+    function: Interrupt drive power path 2
+    interfaces:
+      - Coil
+      - Main contacts
+      - Auxiliary feedback
+    analysis_boundary: Series power architecture is assumed
+
+  - id: EDM-01
+    name: External device monitoring loop
+    function: Prove that K1 and K2 have opened before reset
+    interfaces:
+      - K1 auxiliary feedback
+      - K2 auxiliary feedback
+    analysis_boundary: One feedback loop is modeled
+
+  - id: RESET-01
+    name: Manual reset pushbutton
+    function: Provide a deliberate reset edge
+    interfaces:
+      - RESET
+      - CTRL-01
+    analysis_boundary: Reset does not command robot motion
+
+  - id: SUP-01
+    name: 24 V safety control supply
+    function: Supply the safety controller and contactor coils
+    interfaces:
+      - CTRL-01
+      - K1
+      - K2
+    analysis_boundary: Loss of supply causes de-energization
+
+out_of_scope:
+  - Robot motion-control software
+  - Guarding design
+  - Risk estimation
+  - SIL or PL calculation
+  - Component certification
+  - Physical installation and commissioning
