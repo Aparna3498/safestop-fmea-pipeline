@@ -1,0 +1,73 @@
+name: Generate FMEA report
+
+on:
+  workflow_dispatch:
+    inputs:
+      trial_id:
+        description: Trial identifier
+        required: true
+        default: TRIAL-01
+        type: choice
+        options:
+          - TRIAL-01
+          - TRIAL-02
+          - TRIAL-03
+      model:
+        description: OpenAI model
+        required: true
+        default: gpt-5.6
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate and validate candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ inputs.model }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate source evidence
+        run: python src/validate_inputs.py
+
+      - name: Generate FMEA candidates
+        run: >-
+          python -m src.generate_fmea
+          --trial-id "${{ inputs.trial_id }}"
+          --model "${{ inputs.model }}"
+
+      - name: Validate generated candidates
+        run: >-
+          python -m src.validate_candidates
+          "outputs/${{ inputs.trial_id }}/fmea_candidates.json"
+
+      - name: Render human-review report
+        run: >-
+          python -m src.render_report
+          "outputs/${{ inputs.trial_id }}/fmea_candidates.json"
+          --trial-id "${{ inputs.trial_id }}"
+          --output "outputs/${{ inputs.trial_id }}/fmea_report.md"
+
+      - name: Upload trial artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: safestop-${{ inputs.trial_id }}
+          path: outputs/${{ inputs.trial_id }}/
+          if-no-files-found: error
+          retention-days: 30

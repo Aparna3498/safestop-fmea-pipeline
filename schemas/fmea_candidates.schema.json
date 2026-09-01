@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "AIClassification": {
+      "description": "Permitted AI screening labels; these are not risk ratings.",
+      "enum": [
+        "Safe",
+        "Degraded",
+        "Dangerous",
+        "Dangerous latent",
+        "Uncertain"
+      ],
+      "title": "AIClassification",
+      "type": "string"
+    },
+    "Confidence": {
+      "description": "Permitted confidence labels for candidate screening.",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "FMEACandidate": {
+      "additionalProperties": false,
+      "description": "One preliminary failure-mode candidate requiring human review.",
+      "properties": {
+        "candidate_id": {
+          "pattern": "^AI-\\d{3}$",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "element_id": {
+          "minLength": 1,
+          "title": "Element Id",
+          "type": "string"
+        },
+        "failure_mode": {
+          "minLength": 1,
+          "title": "Failure Mode",
+          "type": "string"
+        },
+        "local_effect": {
+          "minLength": 1,
+          "title": "Local Effect",
+          "type": "string"
+        },
+        "system_effect": {
+          "minLength": 1,
+          "title": "System Effect",
+          "type": "string"
+        },
+        "hazardous_consequence": {
+          "minLength": 1,
+          "title": "Hazardous Consequence",
+          "type": "string"
+        },
+        "detection_mechanism": {
+          "minLength": 1,
+          "title": "Detection Mechanism",
+          "type": "string"
+        },
+        "recommended_action": {
+          "minLength": 1,
+          "title": "Recommended Action",
+          "type": "string"
+        },
+        "evidence_references": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence References",
+          "type": "array"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "missing_information": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Information",
+          "type": "array"
+        },
+        "ai_classification": {
+          "$ref": "#/$defs/AIClassification"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "element_id",
+        "failure_mode",
+        "local_effect",
+        "system_effect",
+        "hazardous_consequence",
+        "detection_mechanism",
+        "recommended_action",
+        "evidence_references",
+        "confidence",
+        "assumptions",
+        "missing_information",
+        "ai_classification"
+      ],
+      "title": "FMEACandidate",
+      "type": "object"
+    }
+  },
+  "items": {
+    "$ref": "#/$defs/FMEACandidate"
+  },
+  "type": "array",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SafeStop preliminary FMEA candidate array"
+}
