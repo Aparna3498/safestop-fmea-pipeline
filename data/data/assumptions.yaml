@@ -1,1 +1,106 @@
+assumptions:
+  - id: A-001
+    area: Equipment
+    statement: >
+      The project models a fixed industrial robot cell.
+      No mobile platform or collaborative-operation mode is included.
+    rationale: Keeps the hazard and interfaces bounded
+    validation_source: Confirm the selected portfolio scenario
+    status: confirmed
 
+  - id: A-002
+    area: Purpose
+    statement: >
+      This is a documentation and simulation exercise.
+      No real machine is connected.
+    rationale: Prevents the project from being interpreted as commissioning evidence
+    validation_source: Retain the project disclaimer
+    status: confirmed
+
+  - id: A-003
+    area: E-stop input
+    statement: >
+      ESTOP-01 has two mechanically linked, positively-opening,
+      normally closed contacts.
+    rationale: Defines dual-channel input behaviour
+    validation_source: Component data sheet in a real project
+    status: to_verify
+
+  - id: A-004
+    area: Controller
+    statement: >
+      CTRL-01 monitors channel discrepancy.
+      The illustrative discrepancy time is 100 ms.
+    rationale: Creates a testable diagnostic expectation
+    validation_source: Controller manual and configuration evidence
+    status: to_verify
+
+  - id: A-005
+    area: Outputs
+    statement: Q1 and Q2 independently command K1 and K2
+    rationale: Supports single-fault tolerance in the simplified architecture
+    validation_source: Schematic and I/O assignment
+    status: to_verify
+
+  - id: A-006
+    area: Power path
+    statement: >
+      K1 and K2 main contacts are in series.
+      Either contactor opening removes drive power enabling hazardous motion.
+    rationale: Defines the effect of one welded contactor
+    validation_source: Power schematic and drive interface
+    status: to_verify
+
+  - id: A-007
+    area: Feedback
+    statement: >
+      K1 and K2 have force-guided auxiliary contacts
+      wired into one EDM loop.
+    rationale: Enables proof of contactor opening before reset
+    validation_source: Contactor data sheet and schematic
+    status: to_verify
+
+  - id: A-008
+    area: Reset
+    statement: >
+      RESET-01 is momentary, located outside the hazard zone,
+      and does not itself start robot motion.
+    rationale: Separates reset from machine start
+    validation_source: Layout, functional specification and test
+    status: to_verify
+
+  - id: A-009
+    area: Power loss
+    statement: >
+      Loss of 24 V control power de-energizes Q1, Q2
+      and both contactor coils.
+    rationale: Supports fail-de-energized behaviour
+    validation_source: Power architecture and undervoltage test
+    status: to_verify
+
+  - id: A-010
+    area: Stopping time
+    statement: >
+      The illustrative target is for outputs to de-energize
+      within 100 ms and hazardous motion to cease within 500 ms.
+    rationale: Provides measurable mock verification targets
+    validation_source: Risk assessment and stopping-time measurement
+    status: to_verify
+
+  - id: A-011
+    area: Scope
+    statement: >
+      No safety network, muting, bypass key, pneumatic hazard,
+      stored energy or braking subsystem is modelled.
+    rationale: Prevents uncontrolled scope expansion
+    validation_source: Confirm against the final system boundary
+    status: confirmed
+
+  - id: A-012
+    area: Claims
+    statement: >
+      No SIL, PL, certification or standards-compliance claim
+      will be made from this exercise.
+    rationale: Keeps the portfolio claims accurate and defensible
+    validation_source: Review the final README and LinkedIn wording
+    status: confirmed
