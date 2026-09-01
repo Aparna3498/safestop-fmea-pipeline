@@ -39,5 +39,14 @@ jobs:
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: Build prompt without an API call
-        run: python -m src.generate_fmea --trial-id TRIAL-01 --dry-run
+      - name: Validate committed TRIAL-01 candidates
+        run: >-
+          python -m src.validate_candidates
+          trials/TRIAL-01/fmea_candidates.json
+
+      - name: Test report rendering
+        run: >-
+          python -m src.render_report
+          trials/TRIAL-01/fmea_candidates.json
+          --trial-id TRIAL-01
+          --output outputs/TRIAL-01/fmea_report.md
