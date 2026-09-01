@@ -1,0 +1,160 @@
+requirements:
+  - id: SR-001
+    requirement: >
+      On an emergency-stop demand from either input channel,
+      CTRL-01 shall de-energize Q1 and Q2 within the illustrative
+      100 ms target.
+    linked_ids:
+      - ESTOP-01
+      - CTRL-01
+      - Q1
+      - Q2
+    verification_method: Fault-injection simulation and timing review
+    acceptance_evidence: Timestamped trace for CH-A and CH-B demands
+    status: draft
+    notes: The target comes from A-010 and is not a validated machine limit
+
+  - id: SR-002
+    requirement: >
+      The system shall monitor two emergency-stop input channels
+      and shall not rely on a single channel for continued operation.
+    linked_ids:
+      - ESTOP-01
+      - CTRL-01
+    verification_method: Design review
+    acceptance_evidence: I/O allocation and configuration record
+    status: draft
+    notes: ""
+
+  - id: SR-003
+    requirement: >
+      A channel discrepancy exceeding the illustrative 100 ms limit
+      shall cause or maintain the safe state and shall inhibit reset.
+    linked_ids:
+      - ESTOP-01
+      - CTRL-01
+    verification_method: Negative test and simulation
+    acceptance_evidence: Discrepancy fault log and blocked-reset result
+    status: draft
+    notes: ""
+
+  - id: SR-004
+    requirement: >
+      A single input-channel open circuit, stuck-healthy state or
+      cross-fault candidate shall be detected no later than the next
+      demand, and restart shall be blocked until cleared.
+    linked_ids:
+      - CH-A
+      - CH-B
+      - CTRL-01
+    verification_method: Fault-injection test
+    acceptance_evidence: Fault matrix with expected and observed results
+    status: draft
+    notes: Cross-fault coverage depends on the real controller design
+
+  - id: SR-005
+    requirement: >
+      Q1 and Q2 shall independently command K1 and K2 so that a
+      single output or contactor fault does not by itself prevent
+      power removal.
+    linked_ids:
+      - Q1
+      - Q2
+      - K1
+      - K2
+    verification_method: Schematic review and single-fault simulation
+    acceptance_evidence: Independent-path trace and power-state result
+    status: draft
+    notes: Based on series-path assumption A-006
+
+  - id: SR-006
+    requirement: >
+      EDM-01 shall verify that both K1 and K2 have opened before
+      reset is permitted.
+    linked_ids:
+      - K1
+      - K2
+      - EDM-01
+      - CTRL-01
+    verification_method: EDM fault-injection test
+    acceptance_evidence: Reset blocked for K1-welded and K2-welded cases
+    status: draft
+    notes: ""
+
+  - id: SR-007
+    requirement: >
+      Releasing ESTOP-01 alone shall not re-energize Q1 or Q2
+      or restart robot motion.
+    linked_ids:
+      - ESTOP-01
+      - CTRL-01
+    verification_method: Negative functional test
+    acceptance_evidence: No output energization after release without reset
+    status: draft
+    notes: ""
+
+  - id: SR-008
+    requirement: >
+      Reset shall require released and healthy E-stop channels,
+      healthy EDM feedback and a deliberate RESET-01 edge.
+      Reset shall not itself command robot motion.
+    linked_ids:
+      - RESET-01
+      - CTRL-01
+      - EDM-01
+    verification_method: Reset sequence and stuck-input tests
+    acceptance_evidence: Positive reset and held-reset negative tests
+    status: draft
+    notes: ""
+
+  - id: SR-009
+    requirement: >
+      Loss of SUP-01 control power shall de-energize Q1, Q2, K1
+      and K2, and restoration of power shall not cause automatic restart.
+    linked_ids:
+      - SUP-01
+      - CTRL-01
+      - K1
+      - K2
+    verification_method: Power interruption test
+    acceptance_evidence: Safe output state during loss and after restoration
+    status: draft
+    notes: ""
+
+  - id: SR-010
+    requirement: >
+      A field-wiring or output fault that keeps one contactor energized
+      shall be detected through diagnostics or EDM and shall inhibit reset.
+    linked_ids:
+      - Q1
+      - Q2
+      - K1
+      - K2
+      - EDM-01
+    verification_method: Short-to-24 V and stuck-output tests
+    acceptance_evidence: Fault detected, other path opens and reset is blocked
+    status: draft
+    notes: ""
+
+  - id: SR-011
+    requirement: >
+      The project evidence shall distinguish an active E-stop demand,
+      a detected diagnostic fault and a reset-not-ready condition.
+    linked_ids:
+      - CTRL-01
+    verification_method: Review of state model and logs
+    acceptance_evidence: Unambiguous state labels in simulation evidence
+    status: draft
+    notes: Indicator implementation is optional
+
+  - id: SR-012
+    requirement: >
+      Verification evidence shall cover each reference single fault
+      and the identified common-cause candidates without using AI
+      output as acceptance evidence.
+    linked_ids:
+      - SS-AI-001
+    verification_method: Evidence review
+    acceptance_evidence: Completed fault matrix with human verdicts
+    status: draft
+    notes: AI suggestions may expand tests but cannot approve them
