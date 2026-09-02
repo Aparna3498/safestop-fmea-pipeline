@@ -1,110 +1,87 @@
 # SafeStop AI-FMEA Pipeline
 
-A human-in-the-loop AI pipeline for preliminary FMEA of a fictional industrial
-robot emergency-stop system.
+SafeStop-AI explores how AI can support the first draft of an FMEA while keeping engineering review, correction and safety decisions under human control.
 
 📘 **[Read the complete project documentation](docs/PROJECT_DOCUMENTATION.md)**
 
-## What the project does
 
-The free portfolio workflow:
 
-1. reads a structured system definition, assumptions and safety requirements;
-2. validates IDs, required fields and traceability;
-3. uses ChatGPT interactively to generate preliminary FMEA candidates;
-4. stores each trial as a traceable JSON file;
-5. validates candidate structure, evidence references and screening labels;
-6. renders Markdown and editable Excel reports for human assessment.
 
-The AI output is candidate material only. It does not approve an FMEA,
-demonstrate functional-safety compliance, assign SIL or PL, replace verification
-evidence or make a final safety decision.
+## Project Highlights
 
-## Repository structure
+- 29 AI-generated preliminary FMEA candidates
+- 83.3% coverage against an 18-row human reference FMEA
+- 12 valid additional candidates
+- 93.1% usefulness precision
+- GitHub Actions-based validation and artifact generation
+- Human-in-the-loop review with uncertainty and traceability
 
-```text
-data/                         source evidence
-prompts/fmea_prompt.md        evidence-only FMEA instructions
-schemas/                      generated JSON output contract
-trials/TRIAL-01/              committed ChatGPT candidate set
-src/                          validation and reporting code
-tests/                        automated pipeline checks
-.github/workflows/            GitHub Actions pipelines
-```
+## Workflow
 
-## Why generation is manual
+1. Prepare controlled system evidence in YAML
+2. Generate structured FMEA candidates using a controlled prompt
+3. Validate JSON structure using GitHub Actions
+4. Generate JSON, Markdown and Excel artifacts
+5. Perform human review and illustrative S/O/D-RPN screening
+6. Compare results with a predefined reference FMEA
 
-The candidate-generation step runs in ChatGPT rather than through the paid
-OpenAI API. This keeps the portfolio exercise free of additional API charges
-while preserving a deliberate human-in-the-loop transfer and review step.
+## System Under Study
 
-The generation prompt uses only `data/system.yaml`, `data/assumptions.yaml` and
-`data/requirements.yaml`. The reference FMEA is deliberately excluded from the
-generation evidence.
+The fictional safety function contains:
 
-## Automatic validation
+- Dual-channel E-stop inputs
+- Safety controller
+- Independent outputs Q1/Q2
+- Series contactors K1/K2
+- EDM feedback
+- Manual reset
+- 24 V control supply
 
-Every push and pull request runs **Validate safety inputs**. It checks:
+The architecture assumes that either K1 or K2 opening is sufficient to remove drive power.
 
-- the three YAML evidence files;
-- the JSON Schema and Python sources;
-- unit tests;
-- all 29 `TRIAL-01` candidates;
-- evidence IDs, boundary IDs, sequential IDs and duplicate mechanisms;
-- prohibited SIL, PL, certification and compliance claims;
-- report rendering.
+## TRIAL-01 Results
 
-## Build the TRIAL-01 report
+| Metric | Result |
+|---|---:|
+| AI candidates | 29 |
+| Reference mechanisms surfaced | 15 / 18 |
+| Baseline coverage | 83.3% |
+| Valid additions | 12 |
+| Duplicate candidates | 1 |
+| Usefulness precision | 93.1% |
 
-1. Open **Actions → Build FMEA report**.
-2. Click **Run workflow**.
-3. Select `TRIAL-01` and run it.
-4. Download the `safestop-TRIAL-01` artifact.
+## Engineering Findings
 
-The artifact contains:
+- Architecture definition strongly affects candidate quality.
+- Common-cause failures received higher screening priority.
+- Some AI candidates bundled multiple physical mechanisms.
+- Low-confidence rows helped expose missing evidence.
+- Human review remained mandatory for all safety decisions.
 
-- `fmea_candidates.json` — structured AI candidates;
-- `fmea_report.md` — readable Markdown report;
-- `fmea_report.xlsx` — editable review workbook with filters, screening summaries and human-review fields.
+## Repository Outputs
 
-The Excel workbook leaves Severity, Occurrence and Detectability blank for human assessment. RPN is calculated automatically only after all three 1–10 ratings are entered. The included rating criteria are illustrative portfolio placeholders and must be replaced by the approved project method before real use.
+- `fmea_candidates.json`
+- `fmea_report.md`
+- `fmea_report.xlsx`
+- Reference comparison workbook
+- Portfolio project report
 
-No API key is required by either workflow.
+## Skills Demonstrated
 
-## Local checks
+- FMEA and causal-chain analysis
+- Functional safety reasoning
+- Requirements and traceability
+- AI governance
+- YAML / JSON
+- GitHub Actions
+- Engineering review and RPN screening
 
-```bash
-python -m pip install -r requirements.txt
-python src/validate_inputs.py
-python -m src.export_schema --check
-python -m unittest discover -s tests -v
-python -m src.validate_candidates trials/TRIAL-01/fmea_candidates.json
-python -m src.render_report trials/TRIAL-01/fmea_candidates.json \
-  --trial-id TRIAL-01 --output outputs/TRIAL-01/fmea_report.md
-python -m src.render_xlsx trials/TRIAL-01/fmea_candidates.json \
-  --trial-id TRIAL-01 --output outputs/TRIAL-01/fmea_report.xlsx
-```
+## Portfolio Website
 
-## Project status
+https://aparna3498.github.io/safestop-fmea-pipeline/
 
-- Day 1: repository, structured evidence and automatic input validation — complete.
-- Day 2: ChatGPT candidate generation, validation and report rendering — complete.
-- Next: human review and comparison against the excluded reference FMEA.
+## Disclaimer
 
-- ## Originality, related work and AI assistance
+This project is a fictional documentation and simulation exercise for portfolio purposes only.
 
-This repository is an independent portfolio implementation combining
-established FMEA practice with an evidence-controlled, human-in-the-loop
-AI workflow. It does not claim to invent FMEA, AI-assisted FMEA or
-human-in-the-loop safety analysis.
-
-Related work includes research on LLM-assisted FMEA and evidence-grounded
-safety-knowledge support. This project applies these broader ideas to a
-fictional industrial robot emergency-stop case using structured YAML
-evidence, JSON traceability, Python validation, GitHub Actions and
-human-reviewed Excel reporting.
-
-ChatGPT/Codex assisted with brainstorming, documentation and software
-development. All generated failure-mode candidates require qualified
-human review and are not safety approval, verification evidence or a
-compliance determination.
+It does not verify a real machine, determine SIL/PL, prove standards compliance, provide certification evidence or replace human safety assessment.
