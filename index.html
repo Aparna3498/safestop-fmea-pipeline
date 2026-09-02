@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SafeStop-AI: Human-in-the-Loop FMEA Pipeline for a fictional industrial robot E-Stop system." />
+  <title>SafeStop-AI | Aparna Dharmalingam</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="#top">SafeStop-AI</a>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#results">Results</a>
+        <a href="#findings">Findings</a>
+        <a href="#skills">Skills</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">FUNCTIONAL SAFETY · AI-ASSISTED FMEA · HUMAN-IN-THE-LOOP</p>
+          <h1>SafeStop-AI</h1>
+          <h2>Human-in-the-Loop FMEA Pipeline for a Fictional Industrial Robot E-Stop System</h2>
+          <p class="lead">
+            A portfolio project exploring how AI can support the repetitive first draft of an FMEA
+            while keeping review, correction and safety decisions under human control.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn primary" href="https://github.com/Aparna3498/safestop-fmea-pipeline" target="_blank" rel="noopener">
+              View GitHub Repository
+            </a>
+            <a class="btn secondary" href="#results">See Trial Results</a>
+          </div>
+
+          <p class="boundary">
+            Portfolio evidence only. This fictional documentation and simulation exercise does not
+            verify a real machine, determine SIL/PL, prove compliance or provide certification evidence.
+          </p>
+        </div>
+
+        <aside class="hero-card">
+          <span class="card-label">TRIAL-01</span>
+          <div class="big-number">29</div>
+          <p>AI-generated preliminary FMEA candidates reviewed against an 18-row human reference FMEA.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div class="container metric-grid">
+        <article>
+          <strong>29</strong>
+          <span>AI candidates</span>
+        </article>
+        <article>
+          <strong>83.3%</strong>
+          <span>Baseline coverage</span>
+        </article>
+        <article>
+          <strong>12</strong>
+          <span>Valid additions</span>
+        </article>
+        <article>
+          <strong>93.1%</strong>
+          <span>Usefulness precision</span>
+        </article>
+        <article>
+          <strong>1</strong>
+          <span>Duplicate candidate</span>
+        </article>
+      </div>
+    </section>
+
+    <section id="overview" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">01 · PROJECT OVERVIEW</p>
+          <h2>Controlled evidence in, reviewable FMEA candidates out.</h2>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>The problem</h3>
+            <p>
+              Early FMEA work can take significant time because system evidence must be converted into a
+              consistent set of candidate failure modes. General-purpose AI may help, but it can also create
+              duplicates, unsupported assumptions or incorrect causal chains.
+            </p>
+          </div>
+
+          <div class="panel">
+            <h3>The objective</h3>
+            <p>
+              Build a reproducible workflow that converts controlled safety evidence into structured,
+              reviewable FMEA candidates, validates the output, generates artifacts and compares the result
+              against a predefined human reference FMEA.
+            </p>
+          </div>
+        </div>
+
+        <div class="architecture">
+          <h3>System boundary</h3>
+          <div class="architecture-grid">
+            <div><b>ESTOP-01 / CH-A / CH-B</b><span>Two-channel emergency-stop demand input and field wiring</span></div>
+            <div><b>CTRL-01</b><span>Channel monitoring, diagnostic logic, output control and reset logic</span></div>
+            <div><b>Q1 / Q2</b><span>Independent safety outputs and associated field wiring</span></div>
+            <div><b>K1 / K2</b><span>Two series contactors; either one opening is assumed to remove drive power</span></div>
+            <div><b>EDM-01</b><span>Contactor auxiliary-feedback loop used before reset</span></div>
+            <div><b>RESET-01 / SUP-01</b><span>Deliberate manual reset and 24 V control supply</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow" class="section alt">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">02 · PIPELINE</p>
+          <h2>AI proposes. Automation validates. Human review decides.</h2>
+        </div>
+
+        <div class="workflow">
+          <div class="step"><span>1</span><h3>Prepare evidence</h3><p>Store system definition and assumptions as controlled YAML data.</p></div>
+          <div class="step"><span>2</span><h3>Generate candidates</h3><p>Use a fixed prompt with defined boundaries, fields, uncertainty rules and prohibited claims.</p></div>
+          <div class="step"><span>3</span><h3>Validate structure</h3><p>GitHub Actions checks required JSON fields and allowed classifications.</p></div>
+          <div class="step"><span>4</span><h3>Build artifacts</h3><p>Generate JSON, Markdown and Excel outputs for review and traceability.</p></div>
+          <div class="step"><span>5</span><h3>Perform human review</h3><p>Review causal chains, add illustrative S/O/D values and record corrections.</p></div>
+          <div class="step"><span>6</span><h3>Calculate trial metrics</h3><p>Measure reference matches, valid additions, duplicates and error categories.</p></div>
+        </div>
+
+        <div class="note">
+          <strong>Automation boundary:</strong> Candidate generation is manual. Validation, calculations and artifact
+          generation are automated with GitHub Actions, preserving human control and avoiding paid API dependency.
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">03 · TRIAL-01 RESULTS</p>
+          <h2>Measured against a withheld 18-row human reference FMEA.</h2>
+        </div>
+
+        <div class="results-grid">
+          <div class="result-card">
+            <span>Unique baseline matches</span>
+            <strong>15 / 18</strong>
+            <small>83.3% coverage</small>
+          </div>
+          <div class="result-card">
+            <span>Valid additions</span>
+            <strong>12</strong>
+            <small>In boundary and technically useful</small>
+          </div>
+          <div class="result-card">
+            <span>Duplicate candidates</span>
+            <strong>1</strong>
+            <small>3.4% duplicate rate</small>
+          </div>
+          <div class="result-card">
+            <span>Rows needing modification</span>
+            <strong>2</strong>
+            <small>Bundled mechanisms require separation</small>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Example</th>
+                <th>Failure-mode candidate</th>
+                <th>S / O / D</th>
+                <th>RPN</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AI-006 · CH-A</td>
+                <td>Common field-wiring fault holds both CH-A and CH-B at 24 V during an E-stop demand.</td>
+                <td>9 / 4 / 9</td>
+                <td>324</td>
+              </tr>
+              <tr>
+                <td>AI-029 · SUP-01</td>
+                <td>Intermittent or intermediate supply voltage does not produce the complete demanded state.</td>
+                <td>7 / 4 / 8</td>
+                <td>224</td>
+              </tr>
+              <tr>
+                <td>AI-010 · CTRL-01</td>
+                <td>Common controller failure leaves both Q1 and Q2 commanded energized after a correct demand.</td>
+                <td>9 / 3 / 8</td>
+                <td>216</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="caution">
+          <strong>RPN caution:</strong> These S/O/D values are illustrative screening inputs for the fictional exercise.
+          They are not based on validated occurrence data or a company-approved rating method.
+        </p>
+      </div>
+    </section>
+
+    <section id="findings" class="section alt">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">04 · ENGINEERING FINDINGS</p>
+          <h2>The useful part was not “AI made rows.” It was making quality measurable.</h2>
+        </div>
+
+        <div class="findings">
+          <article>
+            <h3>Architecture matters</h3>
+            <p>
+              The two-series-contactor rule prevented the analysis from incorrectly claiming that one welded
+              contactor always leaves drive power present.
+            </p>
+          </article>
+          <article>
+            <h3>Granularity was the main weakness</h3>
+            <p>
+              Some candidates combined distinct physical mechanisms, reducing strict one-row/one-reference coverage.
+            </p>
+          </article>
+          <article>
+            <h3>Uncertainty is visible</h3>
+            <p>
+              Low-confidence candidates expose where schematics, configuration evidence or component data would
+              be required before accepting the analysis.
+            </p>
+          </article>
+          <article>
+            <h3>Human review stays mandatory</h3>
+            <p>
+              The comparison remains draft AI-assisted mapping for assessor confirmation, not independent verification
+              or final FMEA approval.
+            </p>
+          </article>
+        </div>
+
+        <div class="gaps">
+          <h3>Reference gaps in TRIAL-01</h3>
+          <ul>
+            <li><b>FM-009:</b> Separate K2 welded-closed mechanism was not generated.</li>
+            <li><b>FM-014:</b> Reset logic accepting a held level was not surfaced as the exact mechanism.</li>
+            <li><b>FM-016:</b> OUT-Q1 field-wire short to 24 V was bundled with another output mechanism.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">05 · SKILLS DEMONSTRATED</p>
+          <h2>Functional safety analysis with traceability, automation and AI governance.</h2>
+        </div>
+
+        <div class="skill-grid">
+          <div><h3>Functional Safety Analysis</h3><p>FMEA causal chains, safe/degraded/dangerous states and fault mechanisms.</p></div>
+          <div><h3>Requirements & Traceability</h3><p>System boundary, assumptions, safety requirements and evidence IDs.</p></div>
+          <div><h3>AI Governance</h3><p>Controlled prompts, constrained schema, uncertainty and claim boundaries.</p></div>
+          <div><h3>Automation</h3><p>GitHub Actions, YAML, JSON validation and repeatable artifact generation.</p></div>
+          <div><h3>Engineering Review</h3><p>S/O/D screening, RPN calculation, reference coverage and duplicate analysis.</p></div>
+          <div><h3>Human-in-the-Loop Safety</h3><p>AI suggestions remain separate from engineering approval and compliance evidence.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="container next-steps">
+        <div>
+          <p class="eyebrow">NEXT STEPS</p>
+          <h2>Project completion roadmap</h2>
+        </div>
+        <ol>
+          <li>Confirm human review decisions for all 29 candidates.</li>
+          <li>Run TRIAL-02 and TRIAL-03 with the same controlled evidence.</li>
+          <li>Compare coverage, duplicates and error categories across trials.</li>
+          <li>Add automated checks for duplicate IDs, invalid evidence references and missing required fields.</li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <strong>SafeStop-AI</strong>
+        <p>Functional Safety Portfolio Project</p>
+      </div>
+      <div>
+        <p>Prepared by Aparna Dharmalingam</p>
+        <a href="https://github.com/Aparna3498/safestop-fmea-pipeline" target="_blank" rel="noopener">GitHub Repository</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
