@@ -3,6 +3,8 @@
 A human-in-the-loop AI pipeline for preliminary FMEA of a fictional industrial
 robot emergency-stop system.
 
+📘 **[Read the complete project documentation](docs/PROJECT_DOCUMENTATION.md)**
+
 ## What the project does
 
 The free portfolio workflow:
