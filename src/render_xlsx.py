@@ -153,6 +153,25 @@ def render_workbook(
     review_format = workbook.add_format(
         {"text_wrap": True, "valign": "top", "font_size": 9, "bg_color": pale_yellow}
     )
+    score_format = workbook.add_format(
+        {
+            "align": "center",
+            "valign": "top",
+            "font_size": 9,
+            "bg_color": "#FFF9E6",
+            "num_format": "0",
+        }
+    )
+    rpn_format = workbook.add_format(
+        {
+            "bold": True,
+            "align": "center",
+            "valign": "top",
+            "font_size": 9,
+            "bg_color": "#E2F0D9",
+            "num_format": "0",
+        }
+    )
 
     summary = workbook.add_worksheet("Summary")
     summary.hide_gridlines(2)
@@ -228,19 +247,20 @@ def render_workbook(
         summary.write_formula(
             offset,
             1,
-            f'=COUNTIF(\'FMEA Candidates\'!$N$2:$N${last_data_row},A{excel_row})',
+            f'=COUNTIF(\'FMEA Candidates\'!$R$2:$R${last_data_row},A{excel_row})',
             count_format,
             cached,
         )
 
     summary.write("D15", "Workflow", section_format)
     summary.merge_range(
-        "D16:E19",
+        "D16:E20",
         (
             "1. Review each causal chain.\n"
-            "2. Record disposition and score category.\n"
-            "3. Add corrections and notes.\n"
-            "4. Do not use AI output as acceptance evidence."
+            "2. Apply the approved S/O/D criteria.\n"
+            "3. Enter S, O and D; RPN calculates automatically.\n"
+            "4. Record disposition, corrections and notes.\n"
+            "5. Do not use AI output as acceptance evidence."
         ),
         text_format,
     )
@@ -248,6 +268,71 @@ def render_workbook(
     summary.set_landscape()
     summary.fit_to_pages(1, 1)
     summary.set_footer("&LPreliminary AI-FMEA&C" + trial_id + "&RPage &P of &N")
+
+    rating = workbook.add_worksheet("Rating Criteria")
+    rating.hide_gridlines(2)
+    rating.set_tab_color("#D6B656")
+    rating.set_row(0, 30)
+    rating.merge_range("A1:D1", "Illustrative Human Rating Criteria", title_format)
+    rating.set_row(2, 68)
+    rating.merge_range(
+        "A3:D3",
+        (
+            "Draft portfolio scale only. Replace these qualitative descriptions with "
+            "the organization-approved FMEA method before real use. AI must not assign "
+            "the scores. No RPN acceptance threshold is defined."
+        ),
+        note_format,
+    )
+    rating_rows = [
+        [1, "No credible safety-relevant consequence within the boundary.", "Remote or exceptional within the defined use.", "Almost certain to detect before the demand or effect."],
+        [2, "Negligible effect; safety function remains unaffected.", "Very low occurrence category.", "Very high likelihood of detection before the demand or effect."],
+        [3, "Minor functional degradation with no identified hazardous consequence.", "Low occurrence category.", "High likelihood of detection before the demand or effect."],
+        [4, "Noticeable degradation; the defined safe state is still expected.", "Moderately low occurrence category.", "Moderately high likelihood of detection."],
+        [5, "Significant degradation with reduced safety margin.", "Occasional occurrence category.", "Moderate likelihood of detection."],
+        [6, "Serious degradation; safety may depend on a remaining independent path.", "Moderately high occurrence category.", "Moderately low likelihood of detection."],
+        [7, "Major loss of the safety function with possible hazardous exposure.", "High occurrence category.", "Low likelihood of detection."],
+        [8, "Severe loss of control with a credible hazardous consequence.", "Very high occurrence category.", "Very low likelihood of detection."],
+        [9, "Very severe credible consequence within the defined boundary.", "Frequent occurrence category.", "Remote likelihood of detection."],
+        [10, "Most severe credible consequence in the approved assessment method.", "Most frequent or likely category in the approved assessment method.", "No known effective detection before the demand or effect."],
+    ]
+    rating.write_row("A5", ["Score", "Severity (S)", "Occurrence (O)", "Detectability (D)"], label_format)
+    for row_index, row in enumerate(rating_rows, start=5):
+        rating.write(row_index, 0, row[0], score_format)
+        rating.write_row(row_index, 1, row[1:], text_format)
+        rating.set_row(row_index, 50)
+    rating.add_table(
+        4,
+        0,
+        14,
+        3,
+        {
+            "name": "RatingCriteria",
+            "style": "Table Style Medium 4",
+            "columns": [
+                {"header": "Score", "format": score_format},
+                {"header": "Severity (S)", "format": text_format},
+                {"header": "Occurrence (O)", "format": text_format},
+                {"header": "Detectability (D)", "format": text_format},
+            ],
+        },
+    )
+    rating.set_column("A:A", 10)
+    rating.set_column("B:D", 46)
+    rating.set_row(4, 32)
+    rating.merge_range(
+        "A17:D18",
+        (
+            "RPN = Severity x Occurrence x Detectability. A higher detectability score "
+            "means the failure is harder to detect. RPN is a prioritization aid only; "
+            "it is not a safety acceptance decision."
+        ),
+        note_format,
+    )
+    rating.freeze_panes(5, 1)
+    rating.set_landscape()
+    rating.fit_to_pages(1, 2)
+    rating.set_footer("&LDraft rating criteria&C" + trial_id + "&RPage &P of &N")
 
     sheet = workbook.add_worksheet("FMEA Candidates")
     sheet.hide_gridlines(2)
@@ -272,6 +357,10 @@ def render_workbook(
         "Assumptions",
         "Missing information",
         "AI classification",
+        "Severity (S)",
+        "Occurrence (O)",
+        "Detectability (D)",
+        "RPN",
         "Human disposition",
         "Score category",
         "Reviewer corrections",
@@ -295,6 +384,10 @@ def render_workbook(
                 list_text(candidate["assumptions"]),
                 list_text(candidate["missing_information"]),
                 str(candidate["ai_classification"]),
+                "",
+                "",
+                "",
+                "",
                 "Not reviewed",
                 "",
                 "",
@@ -304,15 +397,31 @@ def render_workbook(
 
     for row_index, row in enumerate(rows, start=1):
         for column_index, value in enumerate(row):
-            cell_format = review_format if column_index >= 13 else text_format
-            if column_index in (0, 1, 9, 12, 13):
-                cell_format = id_format if column_index < 13 else review_format
-            sheet.write(row_index, column_index, value, cell_format)
+            if column_index in (13, 14, 15):
+                sheet.write_blank(row_index, column_index, None, score_format)
+            elif column_index == 16:
+                excel_row = row_index + 1
+                sheet.write_formula(
+                    row_index,
+                    column_index,
+                    f'=IF(COUNT(N{excel_row}:P{excel_row})=3,N{excel_row}*O{excel_row}*P{excel_row},"")',
+                    rpn_format,
+                    "",
+                )
+            else:
+                cell_format = review_format if column_index >= 17 else text_format
+                if column_index in (0, 1, 9, 12):
+                    cell_format = id_format
+                sheet.write(row_index, column_index, value, cell_format)
         sheet.set_row(row_index, 96)
 
     table_columns = []
     for column_index, header in enumerate(headers):
-        column_format = review_format if column_index >= 13 else text_format
+        column_format = review_format if column_index >= 17 else text_format
+        if column_index in (13, 14, 15):
+            column_format = score_format
+        elif column_index == 16:
+            column_format = rpn_format
         if column_index in (0, 1, 9, 12):
             column_format = id_format
         table_columns.append({"header": header, "format": column_format})
@@ -330,11 +439,27 @@ def render_workbook(
     )
     sheet.set_row(0, 38)
 
-    widths = [12, 13, 38, 36, 42, 42, 38, 40, 34, 12, 34, 38, 18, 22, 18, 38, 38]
+    widths = [12, 13, 38, 36, 42, 42, 38, 40, 34, 12, 34, 38, 18, 11, 12, 15, 12, 22, 18, 38, 38]
     for column_index, width in enumerate(widths):
         sheet.set_column(column_index, column_index, width)
 
-    disposition_range = f"N2:N{last_data_row}"
+    rating_range = f"N2:P{last_data_row}"
+    sheet.data_validation(
+        rating_range,
+        {
+            "validate": "integer",
+            "criteria": "between",
+            "minimum": 1,
+            "maximum": 10,
+            "ignore_blank": True,
+            "input_title": "Human rating only",
+            "input_message": "Enter an integer from 1 to 10 using the approved criteria.",
+            "error_title": "Rating must be 1-10",
+            "error_message": "Enter a whole number between 1 and 10, or leave blank.",
+        },
+    )
+
+    disposition_range = f"R2:R{last_data_row}"
     sheet.data_validation(
         disposition_range,
         {
@@ -384,10 +509,26 @@ def render_workbook(
 
     sheet.write_comment(
         "N1",
-        "Human assessor field. AI output must not determine this disposition.",
+        "Human assessor field. Select Severity using the approved project criteria.",
     )
     sheet.write_comment(
         "O1",
+        "Human assessor field. Select Occurrence using the approved project criteria.",
+    )
+    sheet.write_comment(
+        "P1",
+        "Human assessor field. Higher Detectability means harder to detect.",
+    )
+    sheet.write_comment(
+        "Q1",
+        "Automatic formula: Severity x Occurrence x Detectability. Blank until all three ratings are entered.",
+    )
+    sheet.write_comment(
+        "R1",
+        "Human assessor field. AI output must not determine this disposition.",
+    )
+    sheet.write_comment(
+        "S1",
         "Enter the score category defined by the human review process.",
     )
 

@@ -65,6 +65,8 @@ The artifact contains:
 - `fmea_report.md` — readable Markdown report;
 - `fmea_report.xlsx` — editable review workbook with filters, screening summaries and human-review fields.
 
+The Excel workbook leaves Severity, Occurrence and Detectability blank for human assessment. RPN is calculated automatically only after all three 1–10 ratings are entered. The included rating criteria are illustrative portfolio placeholders and must be replaced by the approved project method before real use.
+
 No API key is required by either workflow.
 
 ## Local checks
