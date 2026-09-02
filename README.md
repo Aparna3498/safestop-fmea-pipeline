@@ -12,7 +12,7 @@ The free portfolio workflow:
 3. uses ChatGPT interactively to generate preliminary FMEA candidates;
 4. stores each trial as a traceable JSON file;
 5. validates candidate structure, evidence references and screening labels;
-6. renders a Markdown report for human assessment.
+6. renders Markdown and editable Excel reports for human assessment.
 
 The AI output is candidate material only. It does not approve an FMEA,
 demonstrate functional-safety compliance, assign SIL or PL, replace verification
@@ -62,7 +62,8 @@ Every push and pull request runs **Validate safety inputs**. It checks:
 The artifact contains:
 
 - `fmea_candidates.json` — structured AI candidates;
-- `fmea_report.md` — report with human-review fields.
+- `fmea_report.md` — readable Markdown report;
+- `fmea_report.xlsx` — editable review workbook with filters, screening summaries and human-review fields.
 
 No API key is required by either workflow.
 
@@ -76,6 +77,8 @@ python -m unittest discover -s tests -v
 python -m src.validate_candidates trials/TRIAL-01/fmea_candidates.json
 python -m src.render_report trials/TRIAL-01/fmea_candidates.json \
   --trial-id TRIAL-01 --output outputs/TRIAL-01/fmea_report.md
+python -m src.render_xlsx trials/TRIAL-01/fmea_candidates.json \
+  --trial-id TRIAL-01 --output outputs/TRIAL-01/fmea_report.xlsx
 ```
 
 ## Project status

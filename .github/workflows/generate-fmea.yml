@@ -56,6 +56,13 @@ jobs:
           --trial-id "${{ inputs.trial_id }}"
           --output "outputs/${{ inputs.trial_id }}/fmea_report.md"
 
+      - name: Render editable Excel review workbook
+        run: >-
+          python -m src.render_xlsx
+          "trials/${{ inputs.trial_id }}/fmea_candidates.json"
+          --trial-id "${{ inputs.trial_id }}"
+          --output "outputs/${{ inputs.trial_id }}/fmea_report.xlsx"
+
       - name: Upload trial artifacts
         uses: actions/upload-artifact@v4
         with:
