@@ -90,3 +90,21 @@ python -m src.render_xlsx trials/TRIAL-01/fmea_candidates.json \
 - Day 1: repository, structured evidence and automatic input validation — complete.
 - Day 2: ChatGPT candidate generation, validation and report rendering — complete.
 - Next: human review and comparison against the excluded reference FMEA.
+
+- ## Originality, related work and AI assistance
+
+This repository is an independent portfolio implementation combining
+established FMEA practice with an evidence-controlled, human-in-the-loop
+AI workflow. It does not claim to invent FMEA, AI-assisted FMEA or
+human-in-the-loop safety analysis.
+
+Related work includes research on LLM-assisted FMEA and evidence-grounded
+safety-knowledge support. This project applies these broader ideas to a
+fictional industrial robot emergency-stop case using structured YAML
+evidence, JSON traceability, Python validation, GitHub Actions and
+human-reviewed Excel reporting.
+
+ChatGPT/Codex assisted with brainstorming, documentation and software
+development. All generated failure-mode candidates require qualified
+human review and are not safety approval, verification evidence or a
+compliance determination.
