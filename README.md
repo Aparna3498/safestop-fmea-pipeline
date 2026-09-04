@@ -4,26 +4,23 @@ SafeStop-AI explores how AI can support the first draft of an FMEA while keeping
 
 📘 **[Read the complete project documentation](docs/PROJECT_DOCUMENTATION.md)**
 
-
-
-
 ## Project Highlights
 
-- 29 AI-generated preliminary FMEA candidates
-- 83.3% coverage against an 18-row human reference FMEA
-- 12 valid additional candidates
-- 93.1% usefulness precision
-- GitHub Actions-based validation and artifact generation
-- Human-in-the-loop review with uncertainty and traceability
+- Structured system, assumption and requirement evidence in YAML
+- 29 preliminary AI-generated FMEA candidates in TRIAL-01
+- Python checks for input structure, traceability, duplicate mechanisms and prohibited safety claims
+- GitHub Actions-based validation and report generation
+- Editable Excel workbook for human review, with illustrative S/O/D and RPN fields
+- Explicit uncertainty, traceability and human-in-the-loop controls
 
 ## Workflow
 
 1. Prepare controlled system evidence in YAML
 2. Generate structured FMEA candidates using a controlled prompt
-3. Validate JSON structure using GitHub Actions
-4. Generate JSON, Markdown and Excel artifacts
+3. Validate the candidate JSON using Python and GitHub Actions
+4. Generate Markdown and Excel review reports
 5. Perform human review and illustrative S/O/D-RPN screening
-6. Compare results with a predefined reference FMEA
+6. Record corrections and retain independent verification evidence outside the AI output
 
 ## System Under Study
 
@@ -39,32 +36,25 @@ The fictional safety function contains:
 
 The architecture assumes that either K1 or K2 opening is sufficient to remove drive power.
 
-## TRIAL-01 Results
+## TRIAL-01
 
-| Metric | Result |
-|---|---:|
-| AI candidates | 29 |
-| Reference mechanisms surfaced | 15 / 18 |
-| Baseline coverage | 83.3% |
-| Valid additions | 12 |
-| Duplicate candidates | 1 |
-| Usefulness precision | 93.1% |
+TRIAL-01 contains 29 preliminary AI-generated candidate failure modes. They are screening inputs for human review, not an independently validated FMEA or a benchmark result.
+
+The review workbook records illustrative Severity, Occurrence and Detectability inputs and calculates RPN only after those values are entered by a human reviewer.
 
 ## Engineering Findings
 
 - Architecture definition strongly affects candidate quality.
-- Common-cause failures received higher screening priority.
-- Some AI candidates bundled multiple physical mechanisms.
-- Low-confidence rows helped expose missing evidence.
-- Human review remained mandatory for all safety decisions.
+- Some AI candidates bundle more than one physical mechanism and require human correction.
+- Explicit assumptions and missing-information fields make unsupported conclusions visible.
+- Human review remains mandatory for all safety decisions.
 
 ## Repository Outputs
 
-- `fmea_candidates.json`
-- `fmea_report.md`
-- `fmea_report.xlsx`
-- Reference comparison workbook
-- Portfolio project report
+- Versioned TRIAL-01 candidate JSON
+- Editable human-review Excel workbook
+- Markdown and Excel reports generated as GitHub Actions artifacts
+- Project documentation and portfolio website
 
 ## Skills Demonstrated
 
@@ -73,6 +63,7 @@ The architecture assumes that either K1 or K2 opening is sufficient to remove dr
 - Requirements and traceability
 - AI governance
 - YAML / JSON
+- Python validation
 - GitHub Actions
 - Engineering review and RPN screening
 
