@@ -3,6 +3,14 @@ name: Generate FMEA with Gemini
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: Test provider access first, then select generate for a full FMEA
+        required: true
+        default: connection-test
+        type: choice
+        options:
+          - connection-test
+          - generate
       trial_id:
         description: New API trial label (download and review artifacts before committing)
         required: true
@@ -18,7 +26,7 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     env:
       TRIAL_ID: ${{ inputs.trial_id }}
 
@@ -35,7 +43,15 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Test Gemini connection (one small API request)
+        # Older dispatch forms may omit the new mode input; default to the small test.
+        if: inputs.mode != 'generate'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python -m src.generate_candidates --connection-test
+
       - name: Generate and validate candidates (one API request)
+        if: inputs.mode == 'generate'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: >-
@@ -43,9 +59,11 @@ jobs:
           --output "outputs/$TRIAL_ID/fmea_candidates.json"
 
       - name: Recheck generated candidate file
+        if: inputs.mode == 'generate'
         run: python -m src.validate_candidates "outputs/$TRIAL_ID/fmea_candidates.json"
 
       - name: Render Markdown report
+        if: inputs.mode == 'generate'
         run: >-
           python -m src.render_report
           "outputs/$TRIAL_ID/fmea_candidates.json"
@@ -53,6 +71,7 @@ jobs:
           --output "outputs/$TRIAL_ID/fmea_report.md"
 
       - name: Render editable Excel review workbook
+        if: inputs.mode == 'generate'
         run: >-
           python -m src.render_xlsx
           "outputs/$TRIAL_ID/fmea_candidates.json"
@@ -60,6 +79,7 @@ jobs:
           --output "outputs/$TRIAL_ID/fmea_report.xlsx"
 
       - name: Upload candidates, provenance and review reports
+        if: inputs.mode == 'generate'
         uses: actions/upload-artifact@v4
         with:
           name: safestop-gemini-${{ inputs.trial_id }}-${{ github.run_id }}-${{ github.run_attempt }}
