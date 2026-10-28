@@ -33,6 +33,11 @@ jobs:
       - name: Check generated JSON Schema
         run: python -m src.export_schema --check
 
+      - name: Check Gemini request setup without an API call
+        run: >-
+          python -m src.generate_candidates --dry-run
+          --output outputs/API-CHECK/fmea_candidates.json
+
       - name: Compile Python sources
         run: python -m compileall -q src
 
