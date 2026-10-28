@@ -51,7 +51,7 @@
         <aside class="hero-card">
           <span class="card-label">TRIAL-01</span>
           <div class="big-number">29</div>
-          <p>AI-generated preliminary FMEA candidates reviewed against an 18-row human reference FMEA.</p>
+          <p>AI-generated preliminary FMEA candidates. Reference mapping is draft and awaits human confirmation.</p>
         </aside>
       </div>
     </section>
@@ -64,15 +64,15 @@
         </article>
         <article>
           <strong>83.3%</strong>
-          <span>Baseline coverage</span>
+          <span>Draft reference coverage</span>
         </article>
         <article>
           <strong>12</strong>
-          <span>Valid additions</span>
+          <span>Proposed additions</span>
         </article>
         <article>
           <strong>93.1%</strong>
-          <span>Usefulness precision</span>
+          <span>Draft usefulness precision</span>
         </article>
         <article>
           <strong>1</strong>
@@ -131,16 +131,25 @@
 
         <div class="workflow">
           <div class="step"><span>1</span><h3>Prepare evidence</h3><p>Store system definition and assumptions as controlled YAML data.</p></div>
-          <div class="step"><span>2</span><h3>Generate candidates</h3><p>Use a fixed prompt with defined boundaries, fields, uncertainty rules and prohibited claims.</p></div>
+          <div class="step"><span>2</span><h3>Generate candidates</h3><p>Python sends the evidence and controlled prompt to Gemini through an API and receives draft candidates.</p></div>
           <div class="step"><span>3</span><h3>Validate structure</h3><p>GitHub Actions checks required JSON fields and allowed classifications.</p></div>
           <div class="step"><span>4</span><h3>Build artifacts</h3><p>Generate JSON, Markdown and Excel outputs for review and traceability.</p></div>
           <div class="step"><span>5</span><h3>Perform human review</h3><p>Review causal chains, add illustrative S/O/D values and record corrections.</p></div>
-          <div class="step"><span>6</span><h3>Calculate trial metrics</h3><p>Measure reference matches, valid additions, duplicates and error categories.</p></div>
+          <div class="step"><span>6</span><h3>Compare reviewed trials</h3><p>Record reference matches, additions, duplicates and errors after confirming the review basis.</p></div>
         </div>
 
         <div class="note">
-          <strong>Automation boundary:</strong> Candidate generation is manual. Validation, calculations and artifact
-          generation are automated with GitHub Actions, preserving human control and avoiding paid API dependency.
+          <strong>What the API adds:</strong> The original pipeline checked an existing candidate file and built reports.
+          The Gemini workflow can also generate that file. An API lets Python request an answer directly from Gemini;
+          engineers still check the reasoning and make review decisions.
+          <a href="https://github.com/Aparna3498/safestop-fmea-pipeline/blob/main/README.md">Read the simple guide and run instructions.</a>
+        </div>
+
+        <div class="note">
+          <strong>API generation demonstrated:</strong> On 28 October 2026, TRIAL-02 generated 6 draft candidates,
+          passed the software checks and produced Markdown and Excel reports. Recorded generation time was 8.34 seconds.
+          This confirms the pipeline worked; engineering correctness and completeness still require review.
+          <a href="https://github.com/Aparna3498/safestop-fmea-pipeline/actions/runs/40691511126">View the successful run.</a>
         </div>
       </div>
     </section>
@@ -149,8 +158,11 @@
       <div class="container">
         <div class="section-heading">
           <p class="eyebrow">03 · TRIAL-01 RESULTS</p>
-          <h2>Measured against a withheld 18-row human reference FMEA.</h2>
+          <h2>Draft comparison with an 18-row portfolio reference.</h2>
         </div>
+
+        <p class="caution">The figures below come from draft AI-assisted mapping and await human confirmation.
+          They are not independently verified accuracy or coverage results.</p>
 
         <div class="results-grid">
           <div class="result-card">
@@ -159,9 +171,9 @@
             <small>83.3% coverage</small>
           </div>
           <div class="result-card">
-            <span>Valid additions</span>
+            <span>Proposed additions</span>
             <strong>12</strong>
-            <small>In boundary and technically useful</small>
+            <small>Subject to engineering confirmation</small>
           </div>
           <div class="result-card">
             <span>Duplicate candidates</span>
@@ -219,15 +231,15 @@
       <div class="container">
         <div class="section-heading">
           <p class="eyebrow">04 · ENGINEERING FINDINGS</p>
-          <h2>The useful part was not “AI made rows.” It was making quality measurable.</h2>
+          <h2>Review the architecture, failure mechanisms and uncertainty.</h2>
         </div>
 
         <div class="findings">
           <article>
             <h3>Architecture matters</h3>
             <p>
-              The two-series-contactor rule prevented the analysis from incorrectly claiming that one welded
-              contactor always leaves drive power present.
+              Review must account for the two series contactors: one welded contactor alone does not establish
+              that drive power remains present when the other contactor opens.
             </p>
           </article>
           <article>
@@ -289,9 +301,9 @@
         </div>
         <ol>
           <li>Confirm human review decisions for all 29 candidates.</li>
-          <li>Run TRIAL-02 and TRIAL-03 with the same controlled evidence.</li>
-          <li>Compare coverage, duplicates and error categories across trials.</li>
-          <li>Add automated checks for duplicate IDs, invalid evidence references and missing required fields.</li>
+          <li>Review and retain the successful TRIAL-02 API output.</li>
+          <li>Run further controlled trials and record model and input differences.</li>
+          <li>Compare omissions, additions, duplicates and errors using an independently reviewed reference.</li>
         </ol>
       </div>
     </section>
