@@ -100,6 +100,11 @@ establish FMEA correctness or coverage. Official model capabilities, including
 structured output, are documented
 [here](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite).
 
+The REST response parser uses the interaction's `status: completed`. An individual
+`model_output` step may omit `status`, as shown in the official
+[API reference](https://ai.google.dev/api/interactions-api). Completed output
+still needs non-empty text, valid JSON and all existing candidate checks.
+
 ## System Under Study
 
 The fictional safety function contains:

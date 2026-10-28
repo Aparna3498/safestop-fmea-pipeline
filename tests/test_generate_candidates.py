@@ -28,7 +28,7 @@ def response_for(candidates: object = None) -> dict[str, object]:
         "status": "completed",
         "steps": [
             {"type": "thought", "content": []},
-            {"type": "model_output", "status": "done", "content": [
+            {"type": "model_output", "content": [
                 {"type": "text", "text": json.dumps({"candidates": candidates})}
             ]},
         ],
@@ -37,6 +37,16 @@ def response_for(candidates: object = None) -> dict[str, object]:
 
 
 class GenerationTests(unittest.TestCase):
+    def test_official_response_shape_without_step_status_passes(self) -> None:
+        response = response_for()
+        self.assertNotIn("status", response["steps"][1])
+        self.assertEqual(len(api.parse_candidates(response)), 29)
+
+    def test_migration_example_with_explicit_done_status_still_passes(self) -> None:
+        response = response_for()
+        response["steps"][1]["status"] = "done"
+        self.assertEqual(len(api.parse_candidates(response)), 29)
+
     def test_request_uses_controlled_evidence_and_schema(self) -> None:
         payload, hashes = api.build_request()
         self.assertFalse(payload["store"])
@@ -113,6 +123,7 @@ class GenerationTests(unittest.TestCase):
             {"status": "incomplete"},
             {"status": "failed"},
             {"status": "completed", "steps": []},
+            {"status": "completed", "steps": [{"type": "model_output"}]},
             {"status": "completed", "steps": [{"type": "model_output", "status": "done", "content": [{"type": "refusal"}]}]},
             {"status": "completed", "steps": [{"type": "model_output", "status": "in_progress", "content": []}]},
             {"status": "completed", "steps": [{"type": "model_output", "status": "done", "content": [{"type": "text", "text": "{bad json"}]}]},

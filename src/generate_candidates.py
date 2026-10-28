@@ -135,7 +135,9 @@ def response_text(response: dict[str, object]) -> str:
     for step in steps:
         if not isinstance(step, dict) or step.get("type") != "model_output":
             continue
-        if step.get("status") != "done" or not isinstance(step.get("content"), list):
+        # Completion is reported on the interaction. ModelOutputStep itself
+        # has no required status field in the REST API contract.
+        if step.get("status", "done") != "done" or not isinstance(step.get("content"), list):
             raise ValueError("Gemini returned an incomplete model output step.")
         for part in step["content"]:
             if not isinstance(part, dict) or part.get("type") != "text":
