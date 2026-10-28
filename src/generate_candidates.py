@@ -23,7 +23,7 @@ from .validate_inputs import DATA_DIR, PROJECT_ROOT, load_yaml, validate_inputs
 
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 # Listed as free-tier eligible on 2026-10-28; the project must also be on Free.
-MODEL = "gemini-3.8-flash"
+MODEL = "gemini-3.5-flash-lite"
 GENERATION_TIMEOUT_SECONDS = 300
 CONNECTION_TEST_TIMEOUT_SECONDS = 60
 SOURCE_PATHS = (
@@ -135,7 +135,9 @@ def response_text(response: dict[str, object]) -> str:
     for step in steps:
         if not isinstance(step, dict) or step.get("type") != "model_output":
             continue
-        if step.get("status") != "done" or not isinstance(step.get("content"), list):
+        # Completion is reported on the interaction. ModelOutputStep itself
+        # has no required status field in the REST API contract.
+        if step.get("status", "done") != "done" or not isinstance(step.get("content"), list):
             raise ValueError("Gemini returned an incomplete model output step.")
         for part in step["content"]:
             if not isinstance(part, dict) or part.get("type") != "text":

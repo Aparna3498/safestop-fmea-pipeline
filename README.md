@@ -48,7 +48,7 @@ calls. Existing TRIAL-01 evidence and the manual report workflow remain availabl
    `fmea_report.md` and `fmea_report.xlsx`. The workflow does not commit results.
    Commit a reviewed trial separately when you want to retain it in the repo.
 
-The current model is `gemini-3.8-flash`, listed as free-tier eligible on
+The current model is `gemini-3.5-flash-lite`, listed as free-tier eligible on
 2026-10-28. Free-tier access is limited, not unlimited. A quota error stops the
 run; it does not switch to a paid provider. The code cannot determine your
 project billing tier. If billing is enabled, requests may be charged.
@@ -89,6 +89,21 @@ access problem from a slow or failing full generation. DNS, TLS, HTTP and timeou
 failures have separate messages; credentials and raw provider bodies are never
 logged. A longer generation timeout is a bounded allowance, not a confirmed fix
 for the first live TRIAL-02 timeout.
+
+The initial `gemini-3.8-flash` model timed out both for full TRIAL-02 generation
+and for a tiny connection test. The Flash-Lite model is an explicit alternative
+for a controlled comparison using the same endpoint, credentials, request format
+and deadlines. It is not an automatic fallback or proof that the original model
+caused the timeouts. Check the connection test before generating a new trial.
+Record the requested model when comparing trials; a faster model does not
+establish FMEA correctness or coverage. Official model capabilities, including
+structured output, are documented
+[here](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite).
+
+The REST response parser uses the interaction's `status: completed`. An individual
+`model_output` step may omit `status`, as shown in the official
+[API reference](https://ai.google.dev/api/interactions-api). Completed output
+still needs non-empty text, valid JSON and all existing candidate checks.
 
 ## System Under Study
 
