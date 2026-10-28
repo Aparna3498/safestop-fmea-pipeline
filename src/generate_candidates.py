@@ -23,7 +23,7 @@ from .validate_inputs import DATA_DIR, PROJECT_ROOT, load_yaml, validate_inputs
 
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 # Listed as free-tier eligible on 2026-10-28; the project must also be on Free.
-MODEL = "gemini-3.8-flash"
+MODEL = "gemini-3.5-flash-lite"
 GENERATION_TIMEOUT_SECONDS = 300
 CONNECTION_TEST_TIMEOUT_SECONDS = 60
 SOURCE_PATHS = (
