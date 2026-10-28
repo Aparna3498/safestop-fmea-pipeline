@@ -37,9 +37,14 @@ calls. Existing TRIAL-01 evidence and the manual report workflow remain availabl
 2. In this repository, open **Settings → Secrets and variables → Actions → New
    repository secret**. Name it `GEMINI_API_KEY` and paste the key as its value.
    Keep the key out of source files, issues and chat messages.
-3. Once this workflow is on the default branch, open **Actions → Generate FMEA
-   with Gemini → Run workflow**, select TRIAL-02 or TRIAL-03 and start it.
-4. Download the run artifact. Review `fmea_candidates.json`, its metadata file,
+3. Open **Actions → Generate FMEA with Gemini → Run workflow**. Run the default
+   **connection-test** mode first. It sends one small JSON request with a 60-second
+   socket timeout and does not generate candidates or reports. A pass checks
+   credentials/provider access, not the full FMEA schema or engineering quality.
+4. After the connection test passes, run again with **mode: generate** and
+   TRIAL-02 or TRIAL-03. This sends one full FMEA request with a 300-second socket
+   timeout. The workflow has a 10-minute job limit. There are no automatic retries.
+5. Download the generation run artifact. Review `fmea_candidates.json`, its metadata file,
    `fmea_report.md` and `fmea_report.xlsx`. The workflow does not commit results.
    Commit a reviewed trial separately when you want to retain it in the repo.
 
@@ -63,6 +68,8 @@ python -m src.generate_candidates --dry-run --output outputs/TRIAL-02/fmea_candi
 For generation, set `GEMINI_API_KEY` securely in your shell environment, then run:
 
 ```bash
+python -m src.generate_candidates --connection-test
+# After the connection test passes:
 python -m src.generate_candidates --output outputs/TRIAL-02/fmea_candidates.json
 python -m src.validate_candidates outputs/TRIAL-02/fmea_candidates.json
 python -m src.render_report outputs/TRIAL-02/fmea_candidates.json --trial-id TRIAL-02 --output outputs/TRIAL-02/fmea_report.md
@@ -75,6 +82,13 @@ time, interaction ID and reported token usage. Failed, empty, truncated,
 schema-invalid or semantically rejected output does not produce a candidate
 file. Passing these checks is screening only; causal correctness, coverage,
 S/O/D and safety decisions still require human review.
+
+If a request times out, the provider may still have processed it. A timeout does
+not prove an invalid key. Use the small connection test to distinguish a basic
+access problem from a slow or failing full generation. DNS, TLS, HTTP and timeout
+failures have separate messages; credentials and raw provider bodies are never
+logged. A longer generation timeout is a bounded allowance, not a confirmed fix
+for the first live TRIAL-02 timeout.
 
 ## System Under Study
 

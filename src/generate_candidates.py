@@ -6,6 +6,9 @@ import argparse
 import hashlib
 import json
 import os
+import socket
+import ssl
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -21,6 +24,8 @@ from .validate_inputs import DATA_DIR, PROJECT_ROOT, load_yaml, validate_inputs
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 # Listed as free-tier eligible on 2026-10-28; the project must also be on Free.
 MODEL = "gemini-3.8-flash"
+GENERATION_TIMEOUT_SECONDS = 300
+CONNECTION_TEST_TIMEOUT_SECONDS = 60
 SOURCE_PATHS = (
     "prompts/fmea_prompt.md",
     "data/system.yaml",
@@ -68,7 +73,10 @@ def build_request() -> tuple[dict[str, object], dict[str, str]]:
     return payload, hashes
 
 
-def call_gemini(payload: dict[str, object], api_key: str) -> dict[str, object]:
+def call_gemini(
+    payload: dict[str, object], api_key: str,
+    timeout: int = GENERATION_TIMEOUT_SECONDS,
+) -> dict[str, object]:
     """Make one request without retries or logging credentials/provider bodies."""
     request = Request(
         ENDPOINT,
@@ -77,7 +85,7 @@ def call_gemini(payload: dict[str, object], api_key: str) -> dict[str, object]:
         method="POST",
     )
     try:
-        with urlopen(request, timeout=180) as response:
+        with urlopen(request, timeout=timeout) as response:
             result = json.load(response)
     except HTTPError as exc:
         hints = {
@@ -92,8 +100,20 @@ def call_gemini(payload: dict[str, object], api_key: str) -> dict[str, object]:
             + hints.get(exc.code, "Provider error; try again later manually.")
             + " No automatic retry was made."
         ) from None
-    except (URLError, TimeoutError, OSError):
-        raise ValueError("Gemini connection failed or timed out. No automatic retry was made.") from None
+    except (URLError, OSError) as exc:
+        reason = exc.reason if isinstance(exc, URLError) else exc
+        if isinstance(reason, TimeoutError):
+            detail = (
+                f"Gemini connection/response timed out after {timeout} seconds. "
+                "The provider may have processed the request."
+            )
+        elif isinstance(reason, socket.gaierror):
+            detail = "Gemini DNS lookup failed; check the runner network/DNS."
+        elif isinstance(reason, ssl.SSLError):
+            detail = "Gemini TLS connection failed; check certificates and network access."
+        else:
+            detail = "Gemini connection failed; check runner network access or provider availability."
+        raise ValueError(detail + " No automatic retry was made.") from None
     except (json.JSONDecodeError, UnicodeDecodeError):
         raise ValueError("Gemini returned an invalid JSON response.") from None
     except ValueError:
@@ -104,8 +124,8 @@ def call_gemini(payload: dict[str, object], api_key: str) -> dict[str, object]:
     return result
 
 
-def parse_candidates(response: dict[str, object]) -> list[FMEACandidate]:
-    """Reject incomplete/blocked output, then enforce the existing review contract."""
+def response_text(response: dict[str, object]) -> str:
+    """Read only completed text output, excluding thought/user-input steps."""
     if response.get("status") != "completed":
         raise ValueError("Gemini did not complete generation; no candidate file was written.")
     steps = response.get("steps")
@@ -124,15 +144,58 @@ def parse_candidates(response: dict[str, object]) -> list[FMEACandidate]:
                 raise ValueError("Gemini returned an invalid text part.")
             texts.append(part["text"])
     if not texts:
-        raise ValueError("Gemini returned no candidate text.")
+        raise ValueError("Gemini returned no output text.")
+    return "".join(texts)
+
+
+def parse_candidates(response: dict[str, object]) -> list[FMEACandidate]:
+    """Reject incomplete/blocked output, then enforce the existing review contract."""
+    text = response_text(response)
     try:
-        candidates = FMEAResponse.model_validate_json("".join(texts)).candidates
+        candidates = FMEAResponse.model_validate_json(text).candidates
     except ValidationError:
         raise ValueError("Generated JSON failed the FMEA output schema; no candidate file was written.") from None
     errors = semantic_errors(candidates, *evidence_id_sets())
     if errors:
         raise ValueError("Generated candidates failed validation:\n" + "\n".join(errors))
     return candidates
+
+
+def api_key_from_environment() -> str:
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise ValueError("Set GEMINI_API_KEY in your environment or GitHub Actions repository secrets.")
+    return api_key
+
+
+def connection_test() -> int:
+    """Send one tiny request to isolate credentials/provider access from FMEA work."""
+    api_key = api_key_from_environment()
+    payload = {
+        "model": MODEL,
+        "input": 'Return exactly this JSON object: {"status":"ok"}.',
+        "store": False,
+        "generation_config": {"max_output_tokens": 1024, "thinking_level": "low"},
+        "response_format": {
+            "type": "text", "mime_type": "application/json",
+            "schema": {
+                "type": "object",
+                "properties": {"status": {"type": "string", "enum": ["ok"]}},
+                "required": ["status"], "additionalProperties": False,
+            },
+        },
+    }
+    print(f"Testing {MODEL} with one small API request (timeout {CONNECTION_TEST_TIMEOUT_SECONDS}s).", flush=True)
+    started = time.monotonic()
+    response = call_gemini(payload, api_key, timeout=CONNECTION_TEST_TIMEOUT_SECONDS)
+    try:
+        result = json.loads(response_text(response))
+    except json.JSONDecodeError:
+        raise ValueError("Connection test returned invalid JSON.") from None
+    if result != {"status": "ok"}:
+        raise ValueError("Connection test returned an unexpected reply.")
+    print(f"Gemini connection test passed in {time.monotonic() - started:.1f}s. No FMEA generated.")
+    return 0
 
 
 def generate(output: Path, dry_run: bool = False) -> int:
@@ -144,9 +207,9 @@ def generate(output: Path, dry_run: bool = False) -> int:
     if dry_run:
         print(f"Dry run passed: evidence and request schema ready for {MODEL}. No API call made.")
         return 0
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        raise ValueError("Set GEMINI_API_KEY in your environment or GitHub Actions repository secrets.")
+    api_key = api_key_from_environment()
+    print(f"Requesting FMEA candidates from {MODEL} (timeout {GENERATION_TIMEOUT_SECONDS}s).", flush=True)
+    started = time.monotonic()
     response = call_gemini(payload, api_key)
     candidates = parse_candidates(response)
     candidate_json = json.dumps(
@@ -163,6 +226,8 @@ def generate(output: Path, dry_run: bool = False) -> int:
         "request_sha256": hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest(),
         "candidate_sha256": hashlib.sha256(candidate_json.encode("utf-8")).hexdigest(),
         "candidate_count": len(candidates),
+        "request_timeout_seconds": GENERATION_TIMEOUT_SECONDS,
+        "elapsed_seconds": round(time.monotonic() - started, 2),
         "validation": "Schema and semantic screening passed; human review required",
     }
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -177,10 +242,18 @@ def generate(output: Path, dry_run: bool = False) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--dry-run", action="store_true", help="Validate request setup without an API key or call")
+    parser.add_argument("--output", type=Path)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--dry-run", action="store_true", help="Validate request setup without an API key or call")
+    mode.add_argument("--connection-test", action="store_true", help="Make one small real API request without generating FMEA")
     args = parser.parse_args()
+    if args.connection_test and args.output:
+        parser.error("--connection-test does not take --output")
+    if not args.connection_test and args.output is None:
+        parser.error("--output is required for generation or dry run")
     try:
+        if args.connection_test:
+            return connection_test()
         return generate(args.output, args.dry_run)
     except (ValueError, OSError) as exc:
         print(f"Generation failed: {exc}")

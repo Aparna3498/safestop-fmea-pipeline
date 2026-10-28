@@ -6,6 +6,8 @@ import hashlib
 import io
 import json
 import os
+import socket
+import ssl
 import tempfile
 import unittest
 from pathlib import Path
@@ -157,6 +159,60 @@ class GenerationTests(unittest.TestCase):
             network.return_value = io.BytesIO(body)
             with self.subTest(body=body), self.assertRaises(ValueError):
                 api.call_gemini({}, "test-secret")
+
+    @patch.object(api, "urlopen")
+    def test_transport_failures_have_distinct_safe_messages(self, network) -> None:
+        cases = (
+            (TimeoutError("test-secret"), "timed out after 60 seconds"),
+            (URLError(TimeoutError("test-secret")), "timed out after 60 seconds"),
+            (URLError(socket.gaierror("test-secret")), "DNS lookup failed"),
+            (URLError(ssl.SSLError("test-secret")), "TLS connection failed"),
+        )
+        for error, message in cases:
+            network.reset_mock()
+            network.side_effect = error
+            with self.subTest(error=type(error)), self.assertRaisesRegex(ValueError, message) as result:
+                api.call_gemini({}, "test-secret", timeout=60)
+            self.assertNotIn("test-secret", str(result.exception))
+            network.assert_called_once()
+
+    @patch.dict(os.environ, {"GEMINI_API_KEY": "test-secret"})
+    @patch.object(api, "urlopen")
+    def test_connection_test_makes_one_small_request_without_evidence_or_files(self, network) -> None:
+        response = response_for()
+        response["steps"][1]["content"][0]["text"] = '{"status":"ok"}'
+        network.return_value = io.BytesIO(json.dumps(response).encode())
+        with patch.object(api, "build_request") as evidence, patch.object(Path, "open") as files:
+            self.assertEqual(api.connection_test(), 0)
+            evidence.assert_not_called()
+            files.assert_not_called()
+        network.assert_called_once()
+        self.assertEqual(network.call_args.kwargs["timeout"], 60)
+        request = json.loads(network.call_args.args[0].data)
+        self.assertNotIn("A-006", request["input"])
+        self.assertLess(len(request["input"]), 100)
+        self.assertEqual(request["model"], api.MODEL)
+        self.assertFalse(request["store"])
+
+    @patch.dict(os.environ, {"GEMINI_API_KEY": "test-secret"})
+    @patch.object(api, "call_gemini")
+    def test_connection_test_rejects_incomplete_or_unexpected_reply(self, call) -> None:
+        for text in ('{"status":"wrong"}', 'not json'):
+            response = response_for()
+            response["steps"][1]["content"][0]["text"] = text
+            call.return_value = response
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                api.connection_test()
+        call.return_value = {"status": "incomplete"}
+        with self.assertRaises(ValueError):
+            api.connection_test()
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch.object(api, "urlopen")
+    def test_connection_test_missing_key_stops_before_network(self, network) -> None:
+        with self.assertRaisesRegex(ValueError, "Set GEMINI_API_KEY"):
+            api.connection_test()
+        network.assert_not_called()
 
     @patch.object(api, "urlopen", side_effect=ValueError("Invalid header: test-secret"))
     def test_malformed_key_is_not_echoed(self, network) -> None:
