@@ -10,6 +10,7 @@ SafeStop-AI explores how AI can support the first draft of an FMEA while keeping
 - 29 preliminary AI-generated FMEA candidates in TRIAL-01
 - Python checks for input structure, traceability, duplicate mechanisms and prohibited safety claims
 - GitHub Actions-based validation and report generation
+- Optional manual Gemini API generation with validated JSON and run provenance
 - Editable Excel workbook for human review, with illustrative S/O/D and RPN fields
 - Explicit uncertainty, traceability and human-in-the-loop controls
 
@@ -21,6 +22,59 @@ SafeStop-AI explores how AI can support the first draft of an FMEA while keeping
 4. Generate Markdown and Excel review reports
 5. Perform human review and illustrative S/O/D-RPN screening
 6. Record corrections and retain independent verification evidence outside the AI output
+
+## Free-tier API integration
+
+The optional **Generate FMEA with Gemini** workflow connects the controlled YAML
+evidence and existing prompt to Gemini, validates the returned candidates, and
+builds Markdown and Excel review reports. It makes **one API request per manual
+run**, with no automatic retries. Push and pull-request validation makes no API
+calls. Existing TRIAL-01 evidence and the manual report workflow remain available.
+
+1. Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/apikey).
+   Use a project marked **Free** and leave paid billing disabled to stay within
+   the free tier. Eligibility and quotas depend on your project and region.
+2. In this repository, open **Settings → Secrets and variables → Actions → New
+   repository secret**. Name it `GEMINI_API_KEY` and paste the key as its value.
+   Keep the key out of source files, issues and chat messages.
+3. Once this workflow is on the default branch, open **Actions → Generate FMEA
+   with Gemini → Run workflow**, select TRIAL-02 or TRIAL-03 and start it.
+4. Download the run artifact. Review `fmea_candidates.json`, its metadata file,
+   `fmea_report.md` and `fmea_report.xlsx`. The workflow does not commit results.
+   Commit a reviewed trial separately when you want to retain it in the repo.
+
+The current model is `gemini-3.8-flash`, listed as free-tier eligible on
+2026-10-28. Free-tier access is limited, not unlimited. A quota error stops the
+run; it does not switch to a paid provider. The code cannot determine your
+project billing tier. If billing is enabled, requests may be charged.
+Check [current pricing](https://ai.google.dev/gemini-api/docs/pricing) and
+[your quota](https://ai.google.dev/gemini-api/docs/rate-limits) before running.
+Google's free-tier data terms may allow submitted content to improve products;
+use this repository's fictional evidence and check the terms before sending
+confidential engineering information.
+
+For a local setup check without a key or API call:
+
+```bash
+python -m pip install -r requirements.txt
+python -m src.generate_candidates --dry-run --output outputs/TRIAL-02/fmea_candidates.json
+```
+
+For generation, set `GEMINI_API_KEY` securely in your shell environment, then run:
+
+```bash
+python -m src.generate_candidates --output outputs/TRIAL-02/fmea_candidates.json
+python -m src.validate_candidates outputs/TRIAL-02/fmea_candidates.json
+python -m src.render_report outputs/TRIAL-02/fmea_candidates.json --trial-id TRIAL-02 --output outputs/TRIAL-02/fmea_report.md
+python -m src.render_xlsx outputs/TRIAL-02/fmea_candidates.json --trial-id TRIAL-02 --output outputs/TRIAL-02/fmea_report.xlsx
+```
+
+Use a fresh output directory for each local run; existing outputs are never
+overwritten. Metadata records source/request/output hashes, requested model,
+time, interaction ID and reported token usage. Failed, empty, truncated,
+schema-invalid or semantically rejected output does not produce a candidate
+file. Passing these checks is screening only; causal correctness, coverage,
+S/O/D and safety decisions still require human review.
 
 ## System Under Study
 
